@@ -34,6 +34,15 @@ const bookingQuery = { appointmentDate: date }
 res.send(options)
 })
 
+app.get('/bookings', async(req,res)=>{
+    const email= req.query.email
+    const query= {
+        email: email
+    }
+    const booking= await bookingsCollection.find(query).toArray()
+    res.send(booking)
+})
+
 app.post('/bookings', async(req,res) => {
     const booking = req.body
     
