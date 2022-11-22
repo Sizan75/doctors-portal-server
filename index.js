@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const app=express()
 require('dotenv').config();
@@ -11,10 +12,26 @@ app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.bahxlpw.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+function verifyJWT (req,res,next){
+const authHeader =req.headers.authorization
+if(!authHeader){
+    res.status(401).send('unauthorized access')
+}
+const token= authHeader.split(' ')[1]
+jwt.verify(token, process.env.ACCESS_TOKEN, function(err, decoded){
+    if(err){
+        return res.status(403).send({message : 'Forbiden access'})
+    }
+    req.decoded=decoded
+    next()
+})
+}
+
 async function run (){
 try{
 const appointmentOptionCollection = client.db('doctorsPortal').collection('appointmentOptions')
 const bookingsCollection = client.db('doctorsPortal').collection('bookings')
+const userCollection = client.db('doctorsPortal').collection('users')
 
 app.get('/appointmentOptions', async(req,res)=>{
     const date= req.query.date
@@ -34,7 +51,7 @@ const bookingQuery = { appointmentDate: date }
 res.send(options)
 })
 
-app.get('/bookings', async(req,res)=>{
+app.get('/bookings', verifyJWT, async(req,res)=>{
     const email= req.query.email
     const query= {
         email: email
@@ -61,6 +78,24 @@ app.post('/bookings', async(req,res) => {
     const result = await bookingsCollection.insertOne(booking)
     res.send(result);
 })
+
+app.get('/jwt', async(req,res)=>{
+    const email= req.query.email
+    const query= {email: email}
+    const user= await userCollection.find(query)
+    if(user){
+        const token= jwt.sign({email}, process.env.ACCESS_TOKEN, {expiresIn: '1h'})
+        return res.send({accessToken: token})
+    }
+    res.status(403).send({accessToken: 'token'})
+})
+
+app.post('/users', async(req,res)=>{
+    const user=req.body
+    const result= await userCollection.insertOne(user)
+    res.send(result)
+})
+
 }
 finally{
 
