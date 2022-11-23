@@ -135,6 +135,11 @@ app.get('/appointmentSpecialty', async (req, res) => {
     const result = await appointmentOptionCollection.find(query).project({ name: 1 }).toArray();
     res.send(result);
 })
+app.get('/doctors', async(req,res)=>{
+    const query={}
+    const result= await doctorsCollection.find(query).toArray()
+    res.send(result)
+})
 
 app.post('/doctors', async(req,res)=>{
     const doctors= req.body;
