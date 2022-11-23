@@ -87,7 +87,7 @@ app.get('/jwt', async(req,res)=>{
         const token= jwt.sign({email}, process.env.ACCESS_TOKEN, {expiresIn: '1h'})
         return res.send({accessToken: token})
     }
-    res.status(403).send({accessToken: 'token'})
+    res.status(403).send({accessToken: ''})
 })
 
 app.get('/users', async(req,res)=>{
@@ -129,6 +129,12 @@ app.put('/users/admin/:id', verifyJWT, async (req, res) => {
     const result = await userCollection.updateOne(filter, updatedDoc, options);
     res.send(result);
 })
+app.get('/appointmentSpecialty', async (req, res) => {
+    const query = {}
+    const result = await appointmentOptionCollection.find(query).project({ name: 1 }).toArray();
+    res.send(result);
+})
+
 
 }
 finally{
