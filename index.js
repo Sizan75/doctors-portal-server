@@ -32,6 +32,7 @@ try{
 const appointmentOptionCollection = client.db('doctorsPortal').collection('appointmentOptions')
 const bookingsCollection = client.db('doctorsPortal').collection('bookings')
 const userCollection = client.db('doctorsPortal').collection('users')
+const doctorsCollection = client.db('doctorsPortal').collection('doctors')
 
 app.get('/appointmentOptions', async(req,res)=>{
     const date= req.query.date
@@ -135,6 +136,11 @@ app.get('/appointmentSpecialty', async (req, res) => {
     res.send(result);
 })
 
+app.post('/doctors', async(req,res)=>{
+    const doctors= req.body;
+    const result= await doctorsCollection.insertOne(doctors)
+    res.send(result)
+})
 
 }
 finally{
